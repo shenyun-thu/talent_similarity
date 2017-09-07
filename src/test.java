@@ -15,8 +15,8 @@ public class test {
 
     private String filePath;
     private List list = new ArrayList();
-    public person[] p = new person[1000];
-    private String pattern = "(\\d)(.*)(\\.)(.*)(0)";//标识得到的分数
+    public person[] p = new person[10000];
+    private String pattern = "(\\d)(.*)(\\.)(.*)(0)(0)";//标识得到的分数
 
     public test(String filePath) {
         this.filePath = filePath;
@@ -56,8 +56,35 @@ public class test {
         } 
     }
     
+    private void classify_test(){
+        String[] test_id = new String[1000];
+        int temp = 0;
+        test_id[temp] = new String();
+        test_id[temp] = p[1].test_id;
+        temp++;
+        for(int i = 2;i < list.size();i++){
+            boolean flag = true; 
+            test_id[temp] = new String();
+            for(int j=0;j<=temp;j++){
+                if(test_id[j].equals(p[i].test_id)){
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag) {
+                test_id[temp] = p[i].test_id;
+                temp++;
+            }
+        }
+        
+        for(int i = 0;i <temp;i++){
+            System.out.println(test_id[i]);
+        }
+        System.out.println(temp);
+    }
+    
     private void print_info(){
-
+/*
         System.out.println(list.size());
         for(int i = 1;i <list.size();i++){
             System.out.println(p[i].person_id + " " + p[i].test_id); 
@@ -66,15 +93,17 @@ public class test {
             }
             System.out.println();
         } 
+    */ 
     }
 
   
 
     public static  void main(String[] args) throws  BiffException,IOException {
-        test excel = new test("C:\\Users\\shenyun\\Desktop\\query_result.xls");
+        test excel = new test("C:\\Users\\shenyun\\Desktop\\big_data.xls");
         excel.read_test();
         excel.outData();
-        excel.print_info();
+        //excel.print_info();
+        excel.classify_test();
     }
 }
    
