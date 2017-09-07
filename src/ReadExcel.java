@@ -12,150 +12,120 @@ import java.util.regex.Pattern;
 
 
 public class ReadExcel {
-    
+
     private String filePath;
     private List list = new ArrayList();
-    private String pattern = "(\\d)(.*)(\\.)(.*)(0)";//标识得到的分数
-    private String pattern1 = "(\\d)(.*)(\\_)(.*)(\\d)";//标识ID
-    private String num[][] = new String[1010][10000];
-    private int count = 0;//记录相关测试中的项目数
-    
-    public ReadExcel(String filePath){
+    public person[] p = new person[10000];
+    public person[] p_temp = new person[10000];//在获取测试分类信息之后暂时存储相对应的人才信息用于计算
+    private String pattern = "(\\d*)(\\.)(\\d*)";//标识得到的分数
+    public static String[] test_id = new String[1000];
+    public int count;//记录分类后每类中成员的个数
+    public int num_testID;
+    public ReadExcel(String filePath) {
         this.filePath = filePath;
     }
-    
-    private void readExcel() throws IOException,BiffException {
+
+    private void read_excel() throws IOException,BiffException {
         InputStream stream = new FileInputStream(filePath);
-        
         Workbook rwb = Workbook.getWorkbook(stream);
         Sheet sheet = rwb.getSheet(0);
-        for (int i = 0;i<sheet.getRows();i++) {
+        for(int i = 0;i < sheet.getRows();i++){
             String[] str = new String[sheet.getColumns()];
             Cell cell = null;
-            for (int j = 0; j < sheet.getColumns(); j++) {
-                cell = sheet.getCell(j, i);
+            for(int j = 0; j < sheet.getColumns();j++){
+                cell = sheet.getCell(j,i);
                 str[j] = cell.getContents();
             }
             list.add(str);
         }
     }
+
     private void outData()
     {
         for(int i = 1;i<list.size();i++){
-            int temp = 1;
+            int temp = 0;
             String[] str = (String[])list.get(i);
-            for(int j = 0;j<str.length;j++){
-               boolean isMatch  = Pattern.matches(pattern,str[j]);
-               boolean isMatch1 = Pattern.matches(pattern1,str[j]);
-               if(isMatch || isMatch1)
-               {
-                   num[i][temp] = str[j];
-                   temp++;
-               }
+            p[i] = new person();
+            p_temp[i] = new person();
+            p[i].person_id = str[0];
+            p[i].test_id = str[7];
+            for(int j = 8;j <str.length;j ++){
+                boolean isMatch  = Pattern.matches(pattern,str[j]);
+                if(isMatch){
+                    p[i].scores[temp] = Double.parseDouble(str[j]);
+                    temp++;
+                }
             }
-            count = temp - 1;
+            p[i].count = temp-1;
         }
     }
+
+    private void classify_test(){
+        num_testID = 0;
+        test_id[num_testID] = new String();
+        test_id[num_testID] = p[1].test_id;
+        num_testID++;
+        for(int i = 2;i < list.size();i++){
+            boolean flag = true;
+            test_id[num_testID] = new String();
+            for(int j=0;j<=num_testID;j++){
+                if(test_id[j].equals(p[i].test_id)){
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag) {
+                test_id[num_testID] = p[i].test_id;
+                num_testID++;
+            }
+        }
+    }
+
     
-    private void cal_euclidean_distance()
-    {
-        int number = 0;
-        for(int i = 1;i <list.size();i++){
-            for(int j = i+1; j<list.size();j++){
+    public void init_testID(String test_id){
+        count = 0;
+        for(int i = 1;i<list.size();i++){
+            if(p[i].test_id.equals(test_id)){
+                p_temp[count] = p[i];
+                count ++;
+            }
+        }
+    }
+
+    public void cal_eu_distance(){
+        for(int i = 0;i < count;i++){
+            for(int j = i+1;j < count;j++) {
                 double ans = 0;
-                for(int k = 2;k<=count;k++){
-                    double temp_1 = Double.parseDouble(num[i][k]);
-                    double temp_2 = Double.parseDouble(num[j][k]);
-                    ans += (temp_1 - temp_2) * (temp_1 - temp_2);
+
+                for (int k = 0; k <=p_temp[i].count; k++) {
+                    ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                 }
                 ans = Math.sqrt(ans);
+
                 if(ans < 3){
-                    output_info(i,j,ans,"euclidean");
-                    number++;
-                }                   
-            }
-        }
-        System.out.println("we all find " + number + " groups by using method euclidean");
-    }
-    
-    private void cal_manhattan_distance()
-    {
-        int number = 0;
-        for(int i = 1;i < list.size();i++){
-            for(int j = i+1;j < list.size();j++){
-                double ans = 0;
-                for(int k = 2;k<=count;k++){
-                    double temp_1 = Double.parseDouble(num[i][k]);
-                    double temp_2 = Double.parseDouble(num[j][k]);
-                    ans += Math.abs(temp_1 - temp_2);
-                }
-                if(ans < 5){
-            //        output_info(i,j,ans,"manhattan");
-                    number ++;
+                    System.out.println("the distance between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + ans);
                 }
             }
         }
-        System.out.println("we all find " + number + " groups by using method manhattan");
     }
-    
-    private void cal_che_distance()//切比雪夫距离
-    {
-        int number = 0;
-        for(int i = 1;i < list.size();i++){
-            for(int j = i+1;j < list.size();j++){
-                double ans = 0;
-                for(int k = 2;k<=count;k++){
-                    double temp_1 = Double.parseDouble(num[i][k]);
-                    double temp_2 = Double.parseDouble(num[j][k]);
-                    if(ans <= Math.abs(temp_1  - temp_2))
-                    {
-                        ans = Math.abs(temp_1 - temp_2);
-                    }
-                }
-                if(ans < 3){
-               //     output_info(i,j,ans,"chebyshev");
-                    number++;
-                }
-            }
+
+    public void show(){
+        for(int i = 0;i <num_testID;i++){
+            init_testID(test_id[i]);
+            System.out.println("test_id : "+test_id[i]+" the result of talent_similarity judgment: ");
+            System.out.println("-----------------------");
+            cal_eu_distance();
+            System.out.println();
         }
-        System.out.println("we all find " + number + " groups by using method chebyshev");
     }
-    
-    public void output_info(int i,int j,double ans,String method){
-        System.out.println("the " + method + " distance between id " + num[i][1] + " and id " + num[j][1] + " is " + ans);
-        System.out.println("the actual statistics are : ");
-        for(int l = 2;l <= count;l++){
-            System.out.print(num[i][l]+"\t");
-        }
-        System.out.println();
-        for(int l = 2;l <= count;l++){
-            System.out.print(num[j][l]+"\t");
-        }
-        System.out.println();
-    }
-    
-    public static  void main(String[] args) throws  BiffException,IOException{
-        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\query_result.xls");
-        excel.readExcel();
+
+    public static  void main(String[] args) throws  BiffException,IOException {
+        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\big_data.xls");
+        excel.read_excel();
         excel.outData();
-        
-        long startTime_1 = System.currentTimeMillis();
-        excel.cal_euclidean_distance();
-        long endTime_1 = System.currentTimeMillis();
-        System.out.println("euclidean : 程序运行时间为 ：" + (endTime_1 - startTime_1) + " ms");
-        
-        long startTime_2 = System.currentTimeMillis();
-        excel.cal_manhattan_distance();
-        long endTime_2 = System.currentTimeMillis();
-        System.out.println("manhattan : 程序运行时间为 ：" + (endTime_2 - startTime_2) + " ms");
-        
-        long startTime_3 = System.currentTimeMillis();
-        excel.cal_che_distance();
-        long endTime_3 = System.currentTimeMillis();
-        System.out.println("chebyshev : 程序运行时间为 ：" + (endTime_3 - startTime_3) + " ms");
+        excel.classify_test();
+        excel.show();
     }
 }
-
-
-
- 
+   
+    
