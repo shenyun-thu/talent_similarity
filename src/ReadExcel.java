@@ -70,7 +70,7 @@ public class ReadExcel {
                 }
                 ans = Math.sqrt(ans);
                 if(ans < 3){
-            //        output_info(i,j,ans,"euclidean");
+                    output_info(i,j,ans,"euclidean");
                     number++;
                 }                   
             }
