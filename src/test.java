@@ -15,18 +15,15 @@ public class test {
 
     private String filePath;
     private List list = new ArrayList();
+    public person[] p = new person[1000];
     private String pattern = "(\\d)(.*)(\\.)(.*)(0)";//标识得到的分数
-    private String pattern1 = "(\\d)(.*)(\\_)(.*)(\\d)";//标识ID
-    private String num[][] = new String[1010][10000];
-    private int count = 0;//记录相关测试中的项目数
 
-    public test(String filePath){
+    public test(String filePath) {
         this.filePath = filePath;
     }
 
     private void read_test() throws IOException,BiffException {
-        InputStream stream = new FileInputStream(filePath);
-
+        InputStream stream = new FileInputStream(filePath);         
         Workbook rwb = Workbook.getWorkbook(stream);
         Sheet sheet = rwb.getSheet(0);
         for(int i = 0;i < sheet.getRows();i++){
@@ -39,25 +36,46 @@ public class test {
             list.add(str);
         }
     }
+    
     private void outData()
     {
         for(int i = 1;i<list.size();i++){
+            int temp = 0;
             String[] str = (String[])list.get(i);
-            for(int j = 0;j <str.length;j ++){
-                
+            p[i] = new person();
+            p[i].person_id = str[0];
+            p[i].test_id = str[7];
+            for(int j = 8;j <str.length;j ++){
+                boolean isMatch  = Pattern.matches(pattern,str[j]);
+                if(isMatch){
+                    p[i].scores[temp] = Double.parseDouble(str[j]);
+                    temp++;
+                }
             }
-        }
+            p[i].count = temp-1;
+        } 
+    }
+    
+    private void print_info(){
+
+        System.out.println(list.size());
+        for(int i = 1;i <list.size();i++){
+            System.out.println(p[i].person_id + " " + p[i].test_id); 
+            for(int j = 0;j <= p[i].count;j++){
+                System.out.print(p[i].scores[j]+"\t");
+            }
+            System.out.println();
+        } 
     }
 
   
 
-    public static  void main(String[] args) throws  BiffException,IOException{
+    public static  void main(String[] args) throws  BiffException,IOException {
         test excel = new test("C:\\Users\\shenyun\\Desktop\\query_result.xls");
         excel.read_test();
         excel.outData();
+        excel.print_info();
     }
 }
-
-
-
- 
+   
+    
