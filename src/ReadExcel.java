@@ -120,7 +120,7 @@ public class ReadExcel {
     }
 
     public static  void main(String[] args) throws  BiffException,IOException {
-        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\big_data2.xls");
+        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\big_data.xls");
         excel.read_excel();
         excel.outData();
         excel.classify_test();
