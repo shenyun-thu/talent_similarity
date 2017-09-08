@@ -15,10 +15,10 @@ public class ReadExcel {
 
     private String filePath;
     private List list = new ArrayList();
-    public person[] p = new person[10000];
-    public person[] p_temp = new person[10000];//在获取测试分类信息之后暂时存储相对应的人才信息用于计算
+    public person[] p = new person[100000];
+    public person[] p_temp = new person[100000];//在获取测试分类信息之后暂时存储相对应的人才信息用于计算
     private String pattern = "(\\d*)(\\.)(\\d*)";//标识得到的分数
-    public static String[] test_id = new String[1000];
+    public static String[] test_id = new String[10000];
     public int count;//记录分类后每类中成员的个数
     public int num_testID;
     public ReadExcel(String filePath) {
@@ -120,7 +120,7 @@ public class ReadExcel {
     }
 
     public static  void main(String[] args) throws  BiffException,IOException {
-        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\big_data.xls");
+        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\big_data2.xls");
         excel.read_excel();
         excel.outData();
         excel.classify_test();
