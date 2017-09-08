@@ -11,7 +11,8 @@ public class test_csv {
     public int count_temp = 0;
     public int num_testID = 0;
     public int count_ans_all = 0;
-    public static double similarity_limit = 1.5; //相似度的限制
+    public double similarity_per;
+    public static double similarity_limit = 0.9; //相似度的限制
     public static double low_score_limit = 80.0; //各维度平均分最低值限制
     public static double max_minus_limit = 2.0;//各维度上的差值的最大限制
 
@@ -107,21 +108,21 @@ public class test_csv {
                     }
                 }
                 if(can_cal){
-                    for (int k = 0; k <=p_temp[i].count; k++) {
+                    for (int k = 0; k <p_temp[i].count; k++) {
                         ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                     }
                     ans = Math.sqrt(ans);
-
-                    if(ans < similarity_limit){
+                    similarity_per = 1 / (1 + 0.1 * ans);
+                    if(similarity_per > similarity_limit){
                         have_ans = true;
-                        System.out.println("the distance between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + ans);
+                        System.out.println("the similarity between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + similarity_per*100 + "%");
                         System.out.println("the actual statistics are : ");
-                        for(int m = 0;m <= p_temp[i].count;m++){
+                        for(int m = 0;m < p_temp[i].count;m++){
                             System.out.print(p_temp[i].scores[m] + " ");
                         }
                         System.out.println("the average : " + p_temp[i].average);
                         System.out.println();
-                        for(int m = 0;m <= p_temp[j].count;m++){
+                        for(int m = 0;m < p_temp[j].count;m++){
                             System.out.print(p_temp[j].scores[m] + " ");
                         }
                         System.out.println("the average : " + p_temp[j].average);
@@ -136,7 +137,7 @@ public class test_csv {
         if(!have_ans) System.out.println("No answer for your request");
     }
     
-    public void show(){
+    public void show(){ 
         for(int i=0;i<num_testID;i++){
             init_testID(test_id[i]);
             System.out.println("test_id : "+test_id[i]+" the result of talent_similarity judgment: ");
@@ -160,7 +161,7 @@ public class test_csv {
     }
     public static void main(String[] args) {
         long start_time = System.currentTimeMillis();
-        test_csv demo = new test_csv("C:\\Users\\shenyun\\Desktop\\store\\tenantID_110006.csv");
+        test_csv demo = new test_csv("C:\\Users\\shenyun\\Desktop\\store\\tenantID_101120.csv");
         demo.read_csv();
      //   demo.print();
         demo.classify_test();
