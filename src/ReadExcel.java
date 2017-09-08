@@ -31,7 +31,8 @@ public class ReadExcel {
     public static double max_minus_limit = 2.0;//各维度上的差值的最大限制
     
     
-    private void read_excel() throws IOException,BiffException {
+    private void read_excel() throws IOException,BiffException 
+    {
         InputStream stream = new FileInputStream(filePath);
         Workbook rwb = Workbook.getWorkbook(stream);
         Sheet sheet = rwb.getSheet(0);
@@ -163,7 +164,7 @@ public class ReadExcel {
 
     public static  void main(String[] args) throws  BiffException,IOException {
         long start_time = System.currentTimeMillis();
-        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\tenantid_160144.xls");
+        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\tenantid_110006.xls");
         excel.read_excel();
         excel.outData();
         excel.classify_test();
