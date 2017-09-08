@@ -15,8 +15,9 @@ public class ReadExcel {
 
     private String filePath;
     private List list = new ArrayList();
-    public person[] p = new person[100000];
-    public person[] p_temp = new person[100000];//在获取测试分类信息之后暂时存储相对应的人才信息用于计算
+    public static int N = 5000000;//最大记录限制
+    public person[] p = new person[N];
+    public person[] p_temp = new person[N];//在获取测试分类信息之后暂时存储相对应的人才信息用于计算
     private String pattern = "(\\d*)(\\.)(\\d*)";//标识得到的分数
     public static String[] test_id = new String[10000];
     public int count;//记录分类后每类中成员的个数
@@ -25,6 +26,11 @@ public class ReadExcel {
         this.filePath = filePath;
     }
     public int count_ans_all = 0;
+    public static double similarity_limit = 1.5; //相似度的限制
+    public static double low_score_limit = 80.0; //各维度平均分最低值限制
+    public static double max_minus_limit = 2.0;//各维度上的差值的最大限制
+    
+    
     private void read_excel() throws IOException,BiffException {
         InputStream stream = new FileInputStream(filePath);
         Workbook rwb = Workbook.getWorkbook(stream);
@@ -89,7 +95,7 @@ public class ReadExcel {
     public void init_testID(String test_id){
         count = 0;
         for(int i = 1;i<list.size();i++){
-            if(p[i].test_id.equals(test_id)&&p[i].average > 80.0){
+            if(p[i].test_id.equals(test_id)&&p[i].average > low_score_limit){
                 p_temp[count] = p[i];
                 count ++;
             }
@@ -99,31 +105,42 @@ public class ReadExcel {
     public void cal_eu_distance(){
         boolean have_ans = false;
         int count_ans = 0;
+        double max_score_minus = 0;
         for(int i = 0;i < count;i++){
             for(int j = i+1;j < count;j++) {
                 double ans = 0;
-
-                
-                for (int k = 0; k <=p_temp[i].count; k++) {
-                    ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
+                boolean can_cal = true;
+                for(int k =0; k <= p_temp[i].count;k++){
+                    if((p_temp[i].scores[k] - p_temp[j].scores[k]) > max_score_minus){  
+                        max_score_minus = (p_temp[i].scores[k] - p_temp[j].scores[k]);
+                        if(max_score_minus > max_minus_limit) {
+                           can_cal = false;
+                           break;
+                       }
+                    }
                 }
-                ans = Math.sqrt(ans);
-
-                if(ans < 1.5){
-                    have_ans = true;
-                    System.out.println("the distance between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + ans);
-                    System.out.println("the actual statistics are : ");
-                    for(int m = 0;m <= p_temp[i].count;m++){
-                        System.out.print(p_temp[i].scores[m] + " ");
+                if(can_cal){
+                    for (int k = 0; k <=p_temp[i].count; k++) {
+                        ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                     }
-                    System.out.println("the average : " + p_temp[i].average);
-                    System.out.println();
-                    for(int m = 0;m <= p_temp[j].count;m++){
-                        System.out.print(p_temp[j].scores[m] + " ");
+                    ans = Math.sqrt(ans);
+    
+                    if(ans < similarity_limit){
+                        have_ans = true;
+                        System.out.println("the distance between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + ans);
+                        System.out.println("the actual statistics are : ");
+                        for(int m = 0;m <= p_temp[i].count;m++){
+                            System.out.print(p_temp[i].scores[m] + " ");
+                        }
+                        System.out.println("the average : " + p_temp[i].average);
+                        System.out.println();
+                        for(int m = 0;m <= p_temp[j].count;m++){
+                            System.out.print(p_temp[j].scores[m] + " ");
+                        }
+                        System.out.println("the average : " + p_temp[j].average);
+                        System.out.println();
+                        count_ans ++;
                     }
-                    System.out.println("the average : " + p_temp[j].average);
-                    System.out.println();
-                    count_ans ++;
                 }
             }
         }
