@@ -24,7 +24,7 @@ public class ReadExcel {
     public ReadExcel(String filePath) {
         this.filePath = filePath;
     }
-
+    public int count_ans_all = 0;
     private void read_excel() throws IOException,BiffException {
         InputStream stream = new FileInputStream(filePath);
         Workbook rwb = Workbook.getWorkbook(stream);
@@ -57,6 +57,10 @@ public class ReadExcel {
                 }
             }
             p[i].count = temp-1;
+            for(int j = 0;j <= p[i].count;j++){
+                p[i].average += p[i].scores[j];
+            }
+            p[i].average = p[i].average / (p[i].count+1);
         }
     }
 
@@ -85,7 +89,7 @@ public class ReadExcel {
     public void init_testID(String test_id){
         count = 0;
         for(int i = 1;i<list.size();i++){
-            if(p[i].test_id.equals(test_id)){
+            if(p[i].test_id.equals(test_id)&&p[i].average > 80.0){
                 p_temp[count] = p[i];
                 count ++;
             }
@@ -93,20 +97,39 @@ public class ReadExcel {
     }
 
     public void cal_eu_distance(){
+        boolean have_ans = false;
+        int count_ans = 0;
         for(int i = 0;i < count;i++){
             for(int j = i+1;j < count;j++) {
                 double ans = 0;
 
+                
                 for (int k = 0; k <=p_temp[i].count; k++) {
                     ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                 }
                 ans = Math.sqrt(ans);
 
-                if(ans < 3){
+                if(ans < 1.5){
+                    have_ans = true;
                     System.out.println("the distance between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + ans);
+                    System.out.println("the actual statistics are : ");
+                    for(int m = 0;m <= p_temp[i].count;m++){
+                        System.out.print(p_temp[i].scores[m] + " ");
+                    }
+                    System.out.println("the average : " + p_temp[i].average);
+                    System.out.println();
+                    for(int m = 0;m <= p_temp[j].count;m++){
+                        System.out.print(p_temp[j].scores[m] + " ");
+                    }
+                    System.out.println("the average : " + p_temp[j].average);
+                    System.out.println();
+                    count_ans ++;
                 }
             }
         }
+        count_ans_all += count_ans;
+        System.out.println("in this test we find " + count_ans + " groups");
+        if(!have_ans) System.out.println("No answer for your request");
     }
 
     public void show(){
@@ -117,14 +140,19 @@ public class ReadExcel {
             cal_eu_distance();
             System.out.println();
         }
+        System.out.println("in this tenant we all find "+count_ans_all+" groups");
+        System.out.println("in this tenant we classify "+num_testID+" groups");
     }
 
     public static  void main(String[] args) throws  BiffException,IOException {
-        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\big_data.xls");
+        long start_time = System.currentTimeMillis();
+        ReadExcel excel = new ReadExcel("C:\\Users\\shenyun\\Desktop\\tenantid_160144.xls");
         excel.read_excel();
         excel.outData();
         excel.classify_test();
         excel.show();
+        long end_time = System.currentTimeMillis();
+        System.out.println("程序运行时间为 : "+(end_time - start_time)+" ms");
     }
 }
    
