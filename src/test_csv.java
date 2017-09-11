@@ -12,9 +12,9 @@ public class test_csv {
     public int num_testID = 0;
     public int count_ans_all = 0;
     public double similarity_per;
-    public static double similarity_limit = 0.9; //相似度的限制
-    public static double low_score_limit = 80.0; //各维度平均分最低值限制
-    public static double max_minus_limit = 2.0;//各维度上的差值的最大限制
+    public static double similarity_limit = 0.8; //相似度的限制
+    public static double low_score_limit = 7.0; //各维度平均分最低值限制
+    public static double max_minus_limit = 3.0;//各维度上的差值的最大限制
 
     test_csv(String filePath){
         this.filePath = filePath;
@@ -38,6 +38,7 @@ public class test_csv {
                 p[count_person] = new person();
                 p[count_person].person_id = temp[0];
                 p[count_person].test_id = temp[7];
+                //手动确定的两个id位置 貌似问题不大 但是应该用正则表达式弄一下我猜
                 for(int i = 8; i <temp.length;i++){
                     boolean isMatch = Pattern.matches(pattern,temp[i]);
                     if(isMatch){
@@ -46,7 +47,6 @@ public class test_csv {
                     }
                 }
                 p[count_person].count = count_s;
-                
                 for(int j = 0;j < p[count_person].count;j++){
                     p[count_person].average += p[count_person].scores[j];
                 }
@@ -98,7 +98,7 @@ public class test_csv {
             for(int j =i+1;j<count_temp;j++){
                 double ans = 0;
                 boolean can_cal = true;
-                for(int k = 0;k <= p_temp[i].count;k++){
+                for(int k = 0;k < p_temp[i].count;k++){
                     if((p_temp[i].scores[k] - p_temp[j].scores[k]) > max_score_minus){
                         max_score_minus = (p_temp[i].scores[k] - p_temp[j].scores[k]);
                         if(max_score_minus > max_minus_limit) {
@@ -112,7 +112,7 @@ public class test_csv {
                         ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                     }
                     ans = Math.sqrt(ans);
-                    similarity_per = 1 / (1 + 0.1 * ans);
+                    similarity_per = 1 / (1 + 0.05 * ans);
                     if(similarity_per > similarity_limit){
                         have_ans = true;
                         System.out.println("the similarity between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + similarity_per*100 + "%");
@@ -161,7 +161,7 @@ public class test_csv {
     }
     public static void main(String[] args) {
         long start_time = System.currentTimeMillis();
-        test_csv demo = new test_csv("C:\\Users\\shenyun\\Desktop\\store\\tenantID_101120.csv");
+        test_csv demo = new test_csv("C:\\Users\\shenyun\\Desktop\\store2\\tenantID_110006.csv");
         demo.read_csv();
      //   demo.print();
         demo.classify_test();
