@@ -1,6 +1,6 @@
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public class test_csv {
@@ -8,13 +8,15 @@ public class test_csv {
     public static int N = 5000000;
     public person[] p = new person[N];
     public person[] p_temp = new person[N];
+    public double []ans_temp = new double[N];
     public static String[]  test_id = new String[10000];
     public int count_person = 0;
     public int count_temp = 0;
     public int num_testID = 0;
     public int count_ans_all = 0;
-    public double similarity_per;
-    public static double similarity_limit = 0.8; //相似度的限制
+    public static int count_actual_in_cal = 0;
+    public static double similarity_limit = 0.999; //相似度的限制
+    public static double ans_limit = 0.0;//欧几里得距离的限制
     public static double low_score_limit = 7.0; //各维度平均分最低值限制
     public static double max_minus_limit = 3.0;//各维度上的差值的最大限制
 
@@ -112,35 +114,37 @@ public class test_csv {
                     }
                 }
                 if(can_cal){
+                    count_actual_in_cal ++;
                     for (int k = 0; k <p_temp[i].count; k++) {
                         ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                     }
                     ans = Math.sqrt(ans);
-                    similarity_per = 1 / (1 + 0.05 * ans);
-                    if(similarity_per > similarity_limit){
+                    if(ans < ans_limit){
                         have_ans = true;
-                        System.out.println("the similarity between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is " + similarity_per*100 + "%");
-                        System.out.println("the actual statistics are : ");
-                        for(int m = 0;m < p_temp[i].count;m++){
-                            System.out.print(p_temp[i].scores[m] + " ");
-                        }
-                        System.out.println("the count of" + p_temp[i].person_id +" is " + p_temp[i].count);
-                        System.out.println("the average : " + p_temp[i].average);
-                        System.out.println();
-                        for(int m = 0;m < p_temp[j].count;m++){
-                            System.out.print(p_temp[j].scores[m] + " ");
-                        }
-                        System.out.println("the count of" + p_temp[j].person_id +" is " + p_temp[j].count);
-                        System.out.println("the average : " + p_temp[j].average);
-                        System.out.println();
+                        System.out.println("the distance is " + ans);
+                        print_ans(i,j);
                         count_ans ++;
                     }
                 }
             }
         }
         count_ans_all += count_ans;
+        System.out.println("-----------------------");
         System.out.println("in this test we find " + count_ans + " groups");
         if(!have_ans) System.out.println("No answer for your request");
+    }
+    
+    public void print_ans(int i,int j){
+        System.out.println("the similarity between id " + p_temp[i].person_id + " and id " + p_temp[j].person_id + " is above " + similarity_limit*100 + "%");
+        System.out.println("the actual statistics are : ");
+        for(int m = 0;m < p_temp[i].count;m++){
+            System.out.print(p_temp[i].scores[m] + " ");
+        }
+        System.out.println();
+        for(int m = 0;m < p_temp[j].count;m++){
+            System.out.print(p_temp[j].scores[m] + " ");
+        }
+        System.out.println();
     }
     
     public void show(){ 
@@ -148,6 +152,7 @@ public class test_csv {
             init_testID(test_id[i]);
             System.out.println("test_id : "+test_id[i]+" the result of talent_similarity judgment: ");
             System.out.println("-----------------------");
+            preview();
             cal_eu_distance();
             System.out.println();
         }
@@ -156,6 +161,46 @@ public class test_csv {
         System.out.println("we have " + count_person +" people");
     }
     
+//    public void test_show(){
+//        int i = 0;
+//        init_testID(test_id[i]);
+//        System.out.println("test_id : "+test_id[i]+" the result of talent_similarity judgment: ");
+//        System.out.println("-----------------------");
+//        preview();
+//        cal_eu_distance();
+//        System.out.println();
+//    }
+    
+    public void preview() {
+        double max_score_minus = 0;
+        int temp = 0;
+        for (int i = 0; i < count_temp; i++) {
+            for (int j = i + 1; j < count_temp; j++) {
+                double ans = 0;
+                boolean can_cal = true;
+                for (int k = 0; k < p_temp[i].count; k++) {
+                    if ((p_temp[i].scores[k] - p_temp[j].scores[k]) > max_score_minus) {
+                        max_score_minus = (p_temp[i].scores[k] - p_temp[j].scores[k]);
+                        if (max_score_minus > max_minus_limit) {
+                            can_cal = false;
+                            break;
+                        }
+                    }
+                }
+                if (can_cal) {
+                    for (int k = 0; k < p_temp[i].count; k++) {
+                        ans += (p_temp[i].scores[k] - p_temp[j].scores[k]) * (p_temp[i].scores[k] - p_temp[j].scores[k]);
+                    }
+                    ans = Math.sqrt(ans);
+                    ans_temp[temp] = ans;
+                    temp ++;
+                }
+            }
+        }
+        Arrays.sort(ans_temp,0,temp);
+        ans_limit = ans_temp[(int)(temp * (1-similarity_limit))];
+    //    System.out.println("the limit distance is " + ans_limit);
+    }
 
     public static void main(String[] args) {
         long start_time = System.currentTimeMillis();
@@ -163,6 +208,8 @@ public class test_csv {
         demo.read_csv();
         demo.classify_test();
         demo.show();
+        //demo.test_show();
+        System.out.println("we actually count " + count_actual_in_cal + " groups");
         long end_time = System.currentTimeMillis();
         System.out.println("程序运行时间为 : "+(end_time - start_time)+" ms");
     }
