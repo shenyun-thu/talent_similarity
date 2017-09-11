@@ -1,3 +1,5 @@
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+
 import java.io.*;
 import java.util.regex.Pattern;
 
@@ -23,6 +25,7 @@ public class test_csv {
     public void read_csv(){
         File csv = new File(filePath);
         String pattern = "(\\d*)(\\.)(\\d*)";
+        String pattern_1 = "\\d*";
         BufferedReader br = null;
         try{
             br = new BufferedReader(new FileReader(csv));
@@ -41,7 +44,8 @@ public class test_csv {
                 //手动确定的两个id位置 貌似问题不大 但是应该用正则表达式弄一下我猜
                 for(int i = 8; i <temp.length;i++){
                     boolean isMatch = Pattern.matches(pattern,temp[i]);
-                    if(isMatch){
+                    boolean isMatch_1 = Pattern.matches(pattern_1,temp[i]);
+                    if(isMatch||isMatch_1){
                         p[count_person].scores[count_s] = Double.parseDouble(temp[i]);
                         count_s ++;
                     }
@@ -120,11 +124,13 @@ public class test_csv {
                         for(int m = 0;m < p_temp[i].count;m++){
                             System.out.print(p_temp[i].scores[m] + " ");
                         }
+                        System.out.println("the count of" + p_temp[i].person_id +" is " + p_temp[i].count);
                         System.out.println("the average : " + p_temp[i].average);
                         System.out.println();
                         for(int m = 0;m < p_temp[j].count;m++){
                             System.out.print(p_temp[j].scores[m] + " ");
                         }
+                        System.out.println("the count of" + p_temp[j].person_id +" is " + p_temp[j].count);
                         System.out.println("the average : " + p_temp[j].average);
                         System.out.println();
                         count_ans ++;
@@ -150,20 +156,11 @@ public class test_csv {
         System.out.println("we have " + count_person +" people");
     }
     
-    public void print(){
-        for(int i = 0; i < count_person;i++){
-            System.out.print(p[i].person_id + " " + p[i].average+" ");
-            for(int j = 0;j<p[i].count;j++){
-                System.out.print(p[i].scores[j] + " ");
-            }
-            System.out.println();
-        }
-    }
+
     public static void main(String[] args) {
         long start_time = System.currentTimeMillis();
         test_csv demo = new test_csv("C:\\Users\\shenyun\\Desktop\\store2\\tenantID_110006.csv");
         demo.read_csv();
-     //   demo.print();
         demo.classify_test();
         demo.show();
         long end_time = System.currentTimeMillis();
