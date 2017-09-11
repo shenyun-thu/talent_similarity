@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class test_csv {
     private String filePath;
-    public static int N = 5000000;
+    public static int N = 10000000;
     public person[] p = new person[N];
     public person[] p_temp = new person[N];
     public double []ans_temp = new double[N];
@@ -15,11 +15,11 @@ public class test_csv {
     public int num_testID = 0;
     public int count_ans_all = 0;
     public static int count_actual_in_cal = 0;
-    public static double similarity_limit = 0.999; //相似度的限制
-    public static double ans_limit = 0.0;//欧几里得距离的限制
+    public static double similarity_limit = 0.99; //相似度的限制
+    public static double ans_limit = 0.0;//欧几里得距离的限制 计算得到
     public static double low_score_limit = 7.0; //各维度平均分最低值限制
     public static double max_minus_limit = 3.0;//各维度上的差值的最大限制
-
+    public static double long_limit = 5.0; //对最大欧式距离的限制 保证具有一定相似度 手动确认
     test_csv(String filePath){
         this.filePath = filePath;
     }
@@ -44,7 +44,7 @@ public class test_csv {
                 p[count_person].person_id = temp[0];
                 p[count_person].test_id = temp[7];
                 //手动确定的两个id位置 貌似问题不大 但是应该用正则表达式弄一下我猜
-                for(int i = 8; i <temp.length;i++){
+                for(int i = 11; i <temp.length;i++){
                     boolean isMatch = Pattern.matches(pattern,temp[i]);
                     boolean isMatch_1 = Pattern.matches(pattern_1,temp[i]);
                     if(isMatch||isMatch_1){
@@ -119,7 +119,7 @@ public class test_csv {
                         ans += (p_temp[i].scores[k] - p_temp[j].scores[k])*(p_temp[i].scores[k] - p_temp[j].scores[k]);
                     }
                     ans = Math.sqrt(ans);
-                    if(ans < ans_limit){
+                    if(ans < ans_limit && ans < long_limit){
                         have_ans = true;
                         System.out.println("the distance is " + ans);
                         print_ans(i,j);
@@ -205,7 +205,9 @@ public class test_csv {
     public static void main(String[] args) {
         long start_time = System.currentTimeMillis();
         test_csv demo = new test_csv("C:\\Users\\shenyun\\Desktop\\store2\\tenantID_110006.csv");
+        
         demo.read_csv();
+        long end_time1 = System.currentTimeMillis();
         demo.classify_test();
         demo.show();
         //demo.test_show();
